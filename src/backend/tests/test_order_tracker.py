@@ -119,3 +119,39 @@ def test_get_order_by_id_empty_id_raises(order_tracker):
     """Tests that an empty order_id raises a ValueError."""
     with pytest.raises(ValueError, match="order_id is required."):
         order_tracker.get_order_by_id("")
+
+
+#
+# --- update_order_status tests ---
+#
+
+def test_update_order_status_success(order_tracker, mock_storage):
+    """Tests successfully updating an order's status."""
+    mock_storage.get_order.return_value = {
+        "order_id": "ORD001", "item_name": "Laptop",
+        "quantity": 1, "customer_id": "CUST001", "status": "pending"
+    }
+    result = order_tracker.update_order_status("ORD001", "shipped")
+    mock_storage.save_order.assert_called_once()
+    assert result["status"] == "shipped"
+    assert result["order_id"] == "ORD001"
+
+
+def test_update_order_status_invalid_status(order_tracker, mock_storage):
+    """Tests that an invalid status raises ValueError without hitting storage."""
+    with pytest.raises(ValueError, match="Invalid status 'bogus'."):
+        order_tracker.update_order_status("ORD001", "bogus")
+    mock_storage.get_order.assert_not_called()
+
+
+def test_update_order_status_non_existent_order(order_tracker, mock_storage):
+    """Tests that updating a non-existent order raises ValueError."""
+    mock_storage.get_order.return_value = None
+    with pytest.raises(ValueError, match="Order with ID 'MISSING' not found."):
+        order_tracker.update_order_status("MISSING", "shipped")
+
+
+def test_update_order_status_empty_id_raises(order_tracker):
+    """Tests that an empty order_id raises ValueError."""
+    with pytest.raises(ValueError, match="order_id is required."):
+        order_tracker.update_order_status("", "shipped")
