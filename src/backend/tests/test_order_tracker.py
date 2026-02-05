@@ -155,3 +155,26 @@ def test_update_order_status_empty_id_raises(order_tracker):
     """Tests that an empty order_id raises ValueError."""
     with pytest.raises(ValueError, match="order_id is required."):
         order_tracker.update_order_status("", "shipped")
+
+
+#
+# --- list_all_orders tests ---
+#
+
+def test_list_all_orders_empty(order_tracker, mock_storage):
+    """Tests that an empty storage returns an empty list."""
+    mock_storage.get_all_orders.return_value = {}
+    result = order_tracker.list_all_orders()
+    assert result == []
+
+
+def test_list_all_orders_multiple(order_tracker, mock_storage):
+    """Tests that multiple orders are returned as a list of dicts."""
+    mock_storage.get_all_orders.return_value = {
+        "ORD001": {"order_id": "ORD001", "item_name": "Laptop", "quantity": 1, "customer_id": "C1", "status": "pending"},
+        "ORD002": {"order_id": "ORD002", "item_name": "Phone", "quantity": 2, "customer_id": "C2", "status": "shipped"},
+    }
+    result = order_tracker.list_all_orders()
+    assert len(result) == 2
+    order_ids = {o["order_id"] for o in result}
+    assert order_ids == {"ORD001", "ORD002"}
