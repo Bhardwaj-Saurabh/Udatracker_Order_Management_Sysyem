@@ -16,7 +16,19 @@ def serve_static(filename):
 
 @app.route('/api/orders', methods=['POST'])
 def add_order_api():
-    pass
+    data = request.get_json()
+    try:
+        order_tracker.add_order(
+            data.get("order_id", ""),
+            data.get("item_name", ""),
+            data.get("quantity", 0),
+            data.get("customer_id", ""),
+            data.get("status", "pending"),
+        )
+        order = order_tracker.get_order_by_id(data["order_id"])
+        return jsonify(order), 201
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/api/orders/<string:order_id>', methods=['GET'])
 def get_order_api(order_id):
