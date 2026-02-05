@@ -90,3 +90,32 @@ def test_add_order_raises_error_for_invalid_status(order_tracker, mock_storage):
     """Tests that an invalid initial status raises a ValueError."""
     with pytest.raises(ValueError, match="Invalid status 'unknown'."):
         order_tracker.add_order("ORD007", "Item", 1, "CUST007", status="unknown")
+
+
+#
+# --- get_order_by_id tests ---
+#
+
+def test_get_order_by_id_existing(order_tracker, mock_storage):
+    """Tests retrieving an existing order by ID."""
+    mock_storage.get_order.return_value = {
+        "order_id": "ORD001", "item_name": "Laptop",
+        "quantity": 1, "customer_id": "CUST001", "status": "pending"
+    }
+    result = order_tracker.get_order_by_id("ORD001")
+    mock_storage.get_order.assert_called_with("ORD001")
+    assert result["order_id"] == "ORD001"
+    assert result["item_name"] == "Laptop"
+
+
+def test_get_order_by_id_non_existent(order_tracker, mock_storage):
+    """Tests that fetching a non-existent order returns None."""
+    mock_storage.get_order.return_value = None
+    result = order_tracker.get_order_by_id("MISSING")
+    assert result is None
+
+
+def test_get_order_by_id_empty_id_raises(order_tracker, mock_storage):
+    """Tests that an empty order_id raises a ValueError."""
+    with pytest.raises(ValueError, match="order_id is required."):
+        order_tracker.get_order_by_id("")
