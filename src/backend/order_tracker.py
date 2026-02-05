@@ -64,4 +64,8 @@ class OrderTracker:
         return list(self.storage.get_all_orders().values())
 
     def list_orders_by_status(self, status: str):
-        pass
+        if not status:
+            raise ValueError("status is required.")
+        if status not in VALID_STATUSES:
+            raise ValueError(f"Invalid status '{status}'.")
+        return [o for o in self.list_all_orders() if o["status"] == status]
