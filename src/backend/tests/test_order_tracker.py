@@ -115,7 +115,7 @@ def test_get_order_by_id_non_existent(order_tracker, mock_storage):
     assert result is None
 
 
-def test_get_order_by_id_empty_id_raises(order_tracker, mock_storage):
+def test_get_order_by_id_empty_id_raises(order_tracker):
     """Tests that an empty order_id raises a ValueError."""
     with pytest.raises(ValueError, match="order_id is required."):
         order_tracker.get_order_by_id("")
