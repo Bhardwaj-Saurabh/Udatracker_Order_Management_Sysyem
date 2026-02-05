@@ -178,3 +178,47 @@ def test_list_all_orders_multiple(order_tracker, mock_storage):
     assert len(result) == 2
     order_ids = {o["order_id"] for o in result}
     assert order_ids == {"ORD001", "ORD002"}
+
+
+#
+# --- list_orders_by_status tests ---
+#
+
+def test_list_orders_by_status_matching(order_tracker, mock_storage):
+    """Tests filtering orders that match the given status."""
+    mock_storage.get_all_orders.return_value = {
+        "ORD001": {"order_id": "ORD001", "item_name": "Laptop", "quantity": 1, "customer_id": "C1", "status": "pending"},
+        "ORD002": {"order_id": "ORD002", "item_name": "Phone", "quantity": 2, "customer_id": "C2", "status": "shipped"},
+        "ORD003": {"order_id": "ORD003", "item_name": "Tablet", "quantity": 1, "customer_id": "C3", "status": "pending"},
+    }
+    result = order_tracker.list_orders_by_status("pending")
+    assert len(result) == 2
+    assert all(o["status"] == "pending" for o in result)
+
+
+def test_list_orders_by_status_none_matching(order_tracker, mock_storage):
+    """Tests that no orders match returns an empty list."""
+    mock_storage.get_all_orders.return_value = {
+        "ORD001": {"order_id": "ORD001", "item_name": "Laptop", "quantity": 1, "customer_id": "C1", "status": "pending"},
+    }
+    result = order_tracker.list_orders_by_status("shipped")
+    assert result == []
+
+
+def test_list_orders_by_status_empty_storage(order_tracker, mock_storage):
+    """Tests that empty storage returns an empty list."""
+    mock_storage.get_all_orders.return_value = {}
+    result = order_tracker.list_orders_by_status("pending")
+    assert result == []
+
+
+def test_list_orders_by_status_empty_status_raises(order_tracker):
+    """Tests that an empty status string raises ValueError."""
+    with pytest.raises(ValueError, match="status is required."):
+        order_tracker.list_orders_by_status("")
+
+
+def test_list_orders_by_status_invalid_status_raises(order_tracker):
+    """Tests that an invalid status raises ValueError."""
+    with pytest.raises(ValueError, match="Invalid status 'bogus'."):
+        order_tracker.list_orders_by_status("bogus")
